@@ -24,104 +24,95 @@ public class UserRepository {
     PreparedStatement preparedStatement;
     ResultSet resultSet;
 
-    public User saveNewUser(User user) throws SQLException {
-        try {
-            connection = dbConection.getConnection();
-            preparedStatement = connection.prepareStatement("INSERT INTO users (id, name, city, email) VALUES (?, ?, ?, ?)");
+    public User saveNewUser(User user)  {
+        // used try-with-resources format
+        try(Connection connection = dbConection.getConnection();
+        PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO users (id, name, city, email) VALUES (?, ?, ?, ?)");) {
+           // connection = dbConection.getConnection();
+           // preparedStatement = connection.prepareStatement("INSERT INTO users (id, name, city, email) VALUES (?, ?, ?, ?)");
             preparedStatement.setInt(1, user.getId());
             preparedStatement.setString(2, user.getName());
             preparedStatement.setString(3, user.getCity());
             preparedStatement.setString(4, user.getEmail());
-            preparedStatement.executeUpdate();
-        } catch (Exception e) {
+            int count = preparedStatement.executeUpdate();
+            if(count > 0){
+                // System.out.println("User added successfully.");
+                user = findUserById(user.getId());
+                return user;
+            }
+        } catch (SQLException e) {
             e.printStackTrace();
-        } finally {
-            preparedStatement.close();
-            connection.close();
         }
-        return user;
+        return null;
     }
 
-    public void deleteById(int id) throws SQLException{
-        try {
-            connection = dbConection.getConnection();
-            preparedStatement = connection.prepareStatement("DELETE FROM users WHERE id = ?");
+    public void deleteById(int id) {
+        try (Connection connection = dbConection.getConnection();
+            PreparedStatement preparedStatement = connection.prepareStatement("DELETE FROM users WHERE id =?")) {
             preparedStatement.setInt(1, id);
             preparedStatement.executeUpdate();
-        } catch (Exception e) {
+        } catch (SQLException e) {
             e.printStackTrace();
-        } finally{
-            preparedStatement.close();
-            connection.close();
         }
     }
 
-    public List<User> getAllUsers() throws SQLException{
+    public List<User> getAllUsers() {
         List<User> users = new ArrayList<>();
-        try {
-            connection = dbConection.getConnection();
-            preparedStatement = connection.prepareStatement("SELECT * FROM users");
-            resultSet = preparedStatement.executeQuery();
+        try (Connection connection = dbConection.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM users");
+            ResultSet resultSet = preparedStatement.executeQuery()) {
+    
             while (resultSet.next()) {
-                int id = resultSet.getInt("id");
-                String name = resultSet.getString("name");
-                String city = resultSet.getString("city");
-                String email = resultSet.getString("email");
-                User user = new User(id, name, city, email);
-                users.add(user);
+                users.add(new User(
+                    resultSet.getInt("id"),
+                    resultSet.getString("name"),
+                    resultSet.getString("city"),
+                    resultSet.getString("email")
+                ));
             }
-        } catch (Exception e) {
+        } catch (SQLException e) {
             e.printStackTrace();
-        } finally{
-            resultSet.close();
-            preparedStatement.close();
-            connection.close();
         }
         return users;
     }
 
-    public User findUserById(int id) throws SQLException {
+    public User findUserById(int id) {
         User user = null;
-        try {
-            connection = dbConection.getConnection();
-            preparedStatement = connection.prepareStatement("SELECT * FROM users WHERE id = ?");
+        try (Connection connection = dbConection.getConnection();
+            PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM users WHERE id = ?")) {
+
             preparedStatement.setInt(1, id);
-            resultSet = preparedStatement.executeQuery();
-            if (resultSet.next()) {
-                int userId = resultSet.getInt("id");
-                String name = resultSet.getString("name");
-                String city = resultSet.getString("city");
-                String email = resultSet.getString("email");
-                user = new User(userId, name, city, email);
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                if (resultSet.next()) {
+                    user = new User(
+                        resultSet.getInt("id"),
+                        resultSet.getString("name"),
+                        resultSet.getString("city"),
+                        resultSet.getString("email")
+                    );
+                }
             }
-        } catch (Exception e) {
+        } catch (SQLException e) {
             e.printStackTrace();
-        } finally{
-            resultSet.close();
-            preparedStatement.close();
-            connection.close();
         }
         return user;
     }
 
     public User updateUserByEmail(String name, String city, String email) throws SQLException {
-        try {
-            connection = dbConection.getConnection();
-            preparedStatement = connection.prepareStatement("UPDATE users SET name = ?, city = ? WHERE email = ?");
+        try (Connection connection = dbConection.getConnection();
+            PreparedStatement preparedStatement = connection.prepareStatement("UPDATE users SET name = ?, city = ?, email = ? WHERE email = ?")) {
+            
             preparedStatement.setString(1, name);
             preparedStatement.setString(2, city);
             preparedStatement.setString(3, email);
             preparedStatement.executeUpdate();
-        } catch (Exception e) {
+        } catch (SQLException e) {
             e.printStackTrace();
-        } finally{
-            preparedStatement.close();
-            connection.close();
         }
         return findUserByEmail(email);
     }
 
-    public User findUserByEmail(String email) throws SQLException{
+    public User findUserByEmail(String email) {
         User user = null;
         try {
             connection = dbConection.getConnection();
@@ -129,43 +120,15 @@ public class UserRepository {
             preparedStatement.setString(1, email);
             resultSet = preparedStatement.executeQuery();
             if (resultSet.next()) {
-                int userId = resultSet.getInt("id");
-                String name = resultSet.getString("name");
-                String city = resultSet.getString("city");
-                String email1 = resultSet.getString("email");
-                user = new User(userId, name, city, email1);
+                user = new User(
+                    resultSet.getInt("id"),
+                    resultSet.getString("name"),
+                    resultSet.getString("city"),
+                    resultSet.getString("email")
+                );
             }
         } catch (Exception e) {
             e.printStackTrace();
-        } finally{
-            resultSet.close();
-            preparedStatement.close();
-            connection.close();
-        }
-        return user;
-    }
-
-    public User findUserByIdAndEmail(int id, String email) throws SQLException{
-        User user = null;
-        try {
-            connection = dbConection.getConnection();
-            preparedStatement = connection.prepareStatement("SELECT * FROM users WHERE id = ? AND email = ?");
-            preparedStatement.setInt(1, id);
-            preparedStatement.setString(id, email);
-            resultSet = preparedStatement.executeQuery();
-            if (resultSet.next()) {
-                user = new User();
-                user.setId(resultSet.getInt("id"));
-                user.setName(resultSet.getString("name"));
-                user.setCity(resultSet.getString("city"));
-                user.setEmail(resultSet.getString("email"));
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally{
-            resultSet.close();
-            preparedStatement.close();
-            connection.close();
         }
         return user;
     }

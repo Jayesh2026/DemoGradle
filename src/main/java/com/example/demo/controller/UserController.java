@@ -25,17 +25,6 @@ public class UserController {
     @Autowired
     UserService usersService;
 
-    // @PostMapping("/saveUser")
-    // public ResponseEntity<String> saveNewUser(@RequestBody User user) {
-    // Boolean result = usersService.saveNewUser(user);
-    // if (Boolean.TRUE.equals(result)) {
-    // return ResponseEntity.status(HttpStatus.CREATED).body("User created
-    // successfully");
-    // }
-    // return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(user.getEmail() + "
-    // already exists, failed to create user.");
-    // }
-
     @PostMapping("/saveUser")
     public ResponseEntity<Response> saveNewUser(@RequestBody User user) {
         try {
