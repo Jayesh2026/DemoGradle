@@ -12,6 +12,7 @@ import javax.sql.DataSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import com.example.demo.config.DBConnection;
 import com.example.demo.model.User;
 
 @Repository
@@ -19,10 +20,6 @@ public class UserRepository {
 
     @Autowired
     DataSource dbConection;
-
-    Connection connection;
-    PreparedStatement preparedStatement;
-    ResultSet resultSet;
 
     public User saveNewUser(User user)  {
         // used try-with-resources format
@@ -98,13 +95,14 @@ public class UserRepository {
         return user;
     }
 
-    public User updateUserByEmail(String name, String city, String email) throws SQLException {
+    public User updateUserByEmail(String name, String city, String email) {
         try (Connection connection = dbConection.getConnection();
             PreparedStatement preparedStatement = connection.prepareStatement("UPDATE users SET name = ?, city = ?, email = ? WHERE email = ?")) {
             
             preparedStatement.setString(1, name);
             preparedStatement.setString(2, city);
             preparedStatement.setString(3, email);
+            preparedStatement.setString(4, email);
             preparedStatement.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -114,18 +112,18 @@ public class UserRepository {
 
     public User findUserByEmail(String email) {
         User user = null;
-        try {
-            connection = dbConection.getConnection();
-            preparedStatement = connection.prepareStatement("SELECT * FROM users WHERE email = ?");
+        try(Connection connection = dbConection.getConnection();
+        PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM users WHERE email = ?")) {
             preparedStatement.setString(1, email);
-            resultSet = preparedStatement.executeQuery();
-            if (resultSet.next()) {
-                user = new User(
-                    resultSet.getInt("id"),
-                    resultSet.getString("name"),
-                    resultSet.getString("city"),
-                    resultSet.getString("email")
-                );
+            try(ResultSet resultSet = preparedStatement.executeQuery()){
+                if (resultSet.next()) {
+                    user = new User(
+                        resultSet.getInt("id"),
+                        resultSet.getString("name"),
+                        resultSet.getString("city"),
+                        resultSet.getString("email")
+                    );
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();

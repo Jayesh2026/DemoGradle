@@ -1,5 +1,7 @@
 package com.example.demo.config;
 
+import java.sql.Connection;
+
 import javax.sql.DataSource;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -32,5 +34,6 @@ public class DBConnection {
 
         return dataSource;
     }
+
     
 }
