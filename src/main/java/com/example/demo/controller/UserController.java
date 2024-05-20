@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -20,12 +21,13 @@ import com.example.demo.model.User;
 import com.example.demo.service.UserService;
 
 @RestController
+@RequestMapping("/users")
 public class UserController {
 
     @Autowired
     UserService usersService;
 
-    @PostMapping("/saveUser")
+    @PostMapping
     public ResponseEntity<Response> saveNewUser(@RequestBody User user) {
         try {
             User savedUser = usersService.saveNewUser(user);
@@ -52,19 +54,19 @@ public class UserController {
         }
     }
 
-    @GetMapping("/getUser-byId/{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<Response> getUserById(@PathVariable int id) {
         try{
             User user = usersService.getUserById(id);
             if(user != null){
                 Response response = new Response();
-                response.setMessage("User retrieve successfully.");
+                response.setMessage("User retrieved successfully.");
                 response.setStatusCode(200); // status ok
                 response.setData(user);
                 return new ResponseEntity<Response>(response, HttpStatus.valueOf(response.getStatusCode()));
             }else{
                 Response response = new Response();
-                response.setMessage("User not able to retrieve.");
+                response.setMessage("User with this id is not present.");
                 response.setStatusCode(404); //not found
                 response.setData(user);
                 return new ResponseEntity<Response>(response, HttpStatus.valueOf(response.getStatusCode()));
@@ -86,7 +88,7 @@ public class UserController {
 
     }
 
-    @GetMapping("/get-allUsers")
+    @GetMapping
     public ResponseEntity<Response> getAllUser() {
         try {
             List<User> userList = usersService.getAllUser();
@@ -113,7 +115,7 @@ public class UserController {
         }
     }
 
-    @PutMapping("update-user")
+    @PutMapping("/updated")
     public ResponseEntity<Response> updateUser(@RequestParam("name") String name, @RequestParam("city") String city, 
                             @RequestParam("email") String email) {
         try{
@@ -146,21 +148,19 @@ public class UserController {
         }
     }
 
-    @DeleteMapping("/delete-user")
-    public ResponseEntity<Response> deleteUser(@RequestParam("id") int id) {
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Response> deleteUser(@PathVariable("id") int id) {
+        Response response = new Response();
         try{
             usersService.deleteUserById(id);
-            Response response = new Response();
             response.setMessage("User deleted successfully.");
             response.setStatusCode(204); // No contend or deleted user
             return new ResponseEntity<>(response, HttpStatus.valueOf(response.getStatusCode()));
         }catch(IllegalArgumentException exception){
-            Response response = new Response();
             response.setMessage(exception.getMessage());
             response.setStatusCode(404);  // not found
             return new ResponseEntity<>(response, HttpStatus.valueOf(response.getStatusCode()));
         } catch(Exception exception){
-            Response response = new Response();
             response.setMessage("Failed to delete user");
             response.setStatusCode(500);  //Internal server error
             return new ResponseEntity<>(response, HttpStatus.valueOf(response.getStatusCode()));

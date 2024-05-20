@@ -12,7 +12,6 @@ import javax.sql.DataSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
-import com.example.demo.config.DBConnection;
 import com.example.demo.model.User;
 
 @Repository
